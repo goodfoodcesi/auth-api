@@ -1,0 +1,159 @@
+name: CI/CD
+
+on: [ push ]
+
+env:
+  REGISTRY: ${{ secrets.REGISTRY }}
+  REGISTRY_NAMESPACE: ${{ secrets.SCW_NAMESPACE }}
+  IMAGE_NAME: ${{ github.event.repository.name }}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Go cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+      - name: Download venom binary
+        run: curl -L https://github.com/ovh/venom/releases/download/v1.1.0/venom.linux-amd64 -o /usr/local/bin/venom
+
+      - name: Make venom executable and verify
+        run: |
+          chmod +x /usr/local/bin/venom
+          ls -l /usr/local/bin/venom
+
+      - name: Check venom version
+        run: venom version
+      - name: Install go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.23.4
+      - name: compile api
+        run: CGO_ENABLED=0 GOOS=linux go build -ldflags "-w" -o ./authapi main.go
+      - name: Run api
+        env:
+          DBHost: "ip"
+          Env: "dev"
+        run: |
+          ./authapi &
+            sleep 2
+      - name: Run tests
+        run: |
+          set -e
+          venom run tests/test.yaml --var url=http://localhost:8080/auth
+  build-feature:
+      if: startsWith(github.ref, 'refs/heads/feature/')
+      environment: feature
+      needs: test
+      runs-on: ubuntu-latest
+      steps:
+        - name: Checkout repository
+          uses: actions/checkout@v4
+        - name: Log in to Scaleway Container Registry
+          uses: docker/login-action@v3
+          with:
+            registry: ${{ env.REGISTRY }}
+            username: nologin
+            password: ${{ secrets.SCW_SECRET_KEY }}
+        - name: Build DEV image
+          uses: docker/build-push-action@v5
+          with:
+            context: .
+            push: true
+            tags: ${{ env.REGISTRY }}/${{ env.REGISTRY_NAMESPACE }}/${{ env.IMAGE_NAME }}:feature-${{ github.ref_name }}
+  build-dev:
+    if: github.ref == 'refs/heads/develop'
+    environment: dev
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Log in to Scaleway Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: nologin
+          password: ${{ secrets.SCW_SECRET_KEY }}
+      - name: Build DEV image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false
+          tags: ${{ env.REGISTRY }}/${{ env.REGISTRY_NAMESPACE }}/${{ env.IMAGE_NAME }}:dev
+      - name: Push DEV image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.REGISTRY_NAMESPACE }}/${{ env.IMAGE_NAME }}:dev
+  build-prod-api:
+    if: startsWith(github.ref, 'refs/tags/')
+    environment: prod
+    needs:
+      - test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Log in to Scaleway Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: nologin
+          password: ${{ secrets.SCW_SECRET_KEY }}
+      - name: Build PROD image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.REGISTRY_NAMESPACE }}/${{ env.IMAGE_NAME }}-api:latest
+            ${{ env.REGISTRY }}/${{ env.REGISTRY_NAMESPACE }}/${{ env.IMAGE_NAME }}-api:${{ github.ref_name }}
+      - name: Push PROD image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.REGISTRY_NAMESPACE }}/${{ env.IMAGE_NAME }}-api:latest
+            ${{ env.REGISTRY }}/${{ env.REGISTRY_NAMESPACE }}/${{ env.IMAGE_NAME }}-api:${{ github.ref_name }}
+  build-prod-consumer:
+    if: startsWith(github.ref, 'refs/tags/')
+    environment: prod
+    needs:
+      - test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Log in to Scaleway Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: nologin
+          password: ${{ secrets.SCW_SECRET_KEY }}
+      - name: Build PROD image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.REGISTRY_NAMESPACE }}/${{ env.IMAGE_NAME }}-consumer:latest
+            ${{ env.REGISTRY }}/${{ env.REGISTRY_NAMESPACE }}/${{ env.IMAGE_NAME }}-consumer:${{ github.ref_name }}
+      - name: Push PROD image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.REGISTRY_NAMESPACE }}/${{ env.IMAGE_NAME }}:latest
+            ${{ env.REGISTRY }}/${{ env.REGISTRY_NAMESPACE }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}

@@ -1,0 +1,23 @@
+name: Test
+testcases:
+  - name: ping
+    steps:
+      - type: http
+        method: GET
+        url: {{.url}}/ping
+        timeout: 5
+        assertions:
+            - result.statuscode ShouldEqual 200
+            - result.timeseconds ShouldBeLessThan 1
+            - result.bodyjson ShouldContainKey message
+  - name: notfound
+    steps:
+      - type: http
+        method: GET
+        url: {{.url}}/notfound
+        timeout: 5
+        assertions:
+          - result.statuscode ShouldEqual 404
+          - result.timeseconds ShouldBeLessThan 1
+          - result.bodyjson ShouldContainKey message
+          - result.bodyjson.message ShouldEqual Not found
