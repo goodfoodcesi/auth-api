@@ -6,7 +6,11 @@ services:
     environment:
       - Env=dev
       - APIPort=:8080
-      - DBHost=ip
+      - DBHost=postgres
+      - DBPort=5432
+      - DBUser=authapi
+      - DBPassword=authapi
+      - DBName=authapi
       - APISecret=your-super-secret-jwt-token-with-at-least-32-characters-long
     labels:
       - "traefik.enable=true"
@@ -15,8 +19,18 @@ services:
       - "traefik.http.services.auth.loadbalancer.server.port=8080"
       - "traefik.docker.network=goodfood-api"
 
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: "authapi"
+      POSTGRES_PASSWORD: "authapi"
+      POSTGRES_DB: "authapi"
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
 
 networks:
   default:
-    external:
-      name: goodfood-api
+    external: true
+    name: goodfood-api

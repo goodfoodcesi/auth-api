@@ -8,5 +8,5 @@ services:
 
 networks:
   default:
-    external:
-      name: goodfood-api
+    external: true
+    name: goodfood-api
