@@ -11,55 +11,58 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-type USERROLE string
+type UserRole string
 
 const (
-	USERROLEADMIN  USERROLE = "ADMIN"
-	USERROLECLIENT USERROLE = "CLIENT"
-	USERROLEDRIVER USERROLE = "DRIVER"
+	UserRoleAdmin   UserRole = "admin"
+	UserRoleUser    UserRole = "user"
+	UserRoleManager UserRole = "manager"
+	UserRoleDriver  UserRole = "driver"
 )
 
-func (e *USERROLE) Scan(src interface{}) error {
+func (e *UserRole) Scan(src interface{}) error {
 	switch s := src.(type) {
 	case []byte:
-		*e = USERROLE(s)
+		*e = UserRole(s)
 	case string:
-		*e = USERROLE(s)
+		*e = UserRole(s)
 	default:
-		return fmt.Errorf("unsupported scan type for USERROLE: %T", src)
+		return fmt.Errorf("unsupported scan type for UserRole: %T", src)
 	}
 	return nil
 }
 
-type NullUSERROLE struct {
-	USERROLE USERROLE `json:"USER_ROLE"`
-	Valid    bool     `json:"valid"` // Valid is true if USERROLE is not NULL
+type NullUserRole struct {
+	UserRole UserRole `json:"user_role"`
+	Valid    bool     `json:"valid"` // Valid is true if UserRole is not NULL
 }
 
 // Scan implements the Scanner interface.
-func (ns *NullUSERROLE) Scan(value interface{}) error {
+func (ns *NullUserRole) Scan(value interface{}) error {
 	if value == nil {
-		ns.USERROLE, ns.Valid = "", false
+		ns.UserRole, ns.Valid = "", false
 		return nil
 	}
 	ns.Valid = true
-	return ns.USERROLE.Scan(value)
+	return ns.UserRole.Scan(value)
 }
 
 // Value implements the driver Valuer interface.
-func (ns NullUSERROLE) Value() (driver.Value, error) {
+func (ns NullUserRole) Value() (driver.Value, error) {
 	if !ns.Valid {
 		return nil, nil
 	}
-	return string(ns.USERROLE), nil
+	return string(ns.UserRole), nil
 }
 
-type USER struct {
-	UserID      pgtype.UUID      `json:"user_id"`
-	FirstName   string           `json:"first_name"`
-	LastName    string           `json:"last_name"`
-	PhoneNumber string           `json:"phone_number"`
-	CreatedAt   pgtype.Timestamp `json:"created_at"`
-	UpdatedAt   pgtype.Timestamp `json:"updated_at"`
-	UserRole    USERROLE         `json:"user_role"`
+type User struct {
+	UserID      pgtype.UUID        `json:"user_id"`
+	FirstName   string             `json:"first_name"`
+	LastName    string             `json:"last_name"`
+	Email       string             `json:"email"`
+	Password    string             `json:"password"`
+	PhoneNumber string             `json:"phone_number"`
+	UserRole    UserRole           `json:"user_role"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
 }

@@ -1,0 +1,20 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: tracking-api-ingress
+  annotations:
+    kubernetes.io/ingress.class: traefik # Utilisation de Traefik comme contrôleur d'ingress
+    traefik.ingress.kubernetes.io/router.entrypoints: web
+
+spec:
+  rules:
+    - host: api.theotruvelot.fr
+      http:
+        paths:
+          - path: /tracking-api
+            pathType: Prefix
+            backend:
+              service:
+                name: tracking-api
+                port:
+                  number: 80

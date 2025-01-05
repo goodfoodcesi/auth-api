@@ -1,0 +1,20 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: auth-api-ingress
+  annotations:
+    kubernetes.io/ingress.class: traefik # Utilisation de Traefik comme contrôleur d'ingress
+    traefik.ingress.kubernetes.io/router.entrypoints: web
+
+spec:
+  rules:
+    - host: dev.api.goodfood.ovh
+      http:
+        paths:
+          - path: /auth-api
+            pathType: Prefix
+            backend:
+              service:
+                name: auth-api
+                port:
+                  number: 80

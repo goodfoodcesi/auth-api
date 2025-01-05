@@ -2,6 +2,8 @@ package logging
 
 import (
 	"context"
+
+	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 )
 
@@ -16,6 +18,25 @@ type Logger interface {
 
 // loggerKey est la clé utilisée pour stocker le logger dans le context
 type loggerKey struct{}
+
+// responseWriter est un wrapper pour gin.ResponseWriter qui capture le status code et la réponse
+type responseWriter struct {
+	gin.ResponseWriter
+	body        []byte
+	statusCode  int
+	writeStatus bool
+}
+
+func (w *responseWriter) Write(b []byte) (int, error) {
+	w.body = b
+	return w.ResponseWriter.Write(b)
+}
+
+func (w *responseWriter) WriteHeader(code int) {
+	w.statusCode = code
+	w.writeStatus = true
+	w.ResponseWriter.WriteHeader(code)
+}
 
 // FromContext récupère le logger du context
 func FromContext(ctx context.Context) Logger {
@@ -85,7 +106,6 @@ func (l *zapLogger) Warn(msg string, fields ...any) {
 }
 
 func InitLogger(env string) *zap.Logger {
-
 	config := zap.NewProductionConfig()
 
 	logger, err := config.Build()

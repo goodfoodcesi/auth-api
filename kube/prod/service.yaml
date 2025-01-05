@@ -1,0 +1,13 @@
+#kube service for tracking-api
+apiVersion: v1
+kind: Service
+metadata:
+  name: tracking-api
+spec:
+  selector:
+      app: tracking-api
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+  type: ClusterIP

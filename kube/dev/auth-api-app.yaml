@@ -1,0 +1,27 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: auth-api
+  namespace: argocd
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: auth-api=rg.fr-par.scw.cloud/goodfood/auth-api:dev
+    argocd-image-updater.argoproj.io/auth-api.pull-secret: pullsecret:argocd/scw-registry-secret
+    argocd-image-updater.argoproj.io/auth-api.update-strategy: digest
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/goodfoodcesi/auth-api
+    targetRevision: HEAD
+    path: kube/dev
+    kustomize: {}  # Ajout de cette ligne pour spécifier l'utilisation de Kustomize
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - PrunePropagationPolicy=Foreground
+      - PruneLast=true
+      - Replace=true

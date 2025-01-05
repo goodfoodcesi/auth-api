@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-api
+spec:
+  revisionHistoryLimit: 3
+  replicas: 2
+  selector:
+    matchLabels:
+      app: auth-api
+  template:
+
+    metadata:
+
+      annotations:
+        ad.datadoghq.com/auth-api.logs: '[{"source": "kubernetes", "service": "auth-api", "env": "dev"}]'
+        ad.datadoghq.com/auth-api.apm: '[{"service_name": "auth-api", "env": "dev"}]'
+      labels:
+        app: auth-api
+    spec:
+
+      imagePullSecrets:
+        - name: scw-registry-secret
+      containers:
+        - name: tracking-api
+          image: rg.fr-par.scw.cloud/goodfood/auth-api:dev
+          ports:
+            - containerPort: 8080
+          env:
+            - name: Env
+              value: dev
+            - name: APIPort
+              value: ":8080"
+            - name: DBHost
+              value: "db-service" # Mettez l'adresse correcte ici
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "250m"
+            limits:
+              memory: "128Mi"
+              cpu: "500m"

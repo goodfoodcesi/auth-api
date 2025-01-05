@@ -2,13 +2,14 @@ package main
 
 import (
 	"context"
+	"io"
+	"net/http"
+
 	"github.com/goodfoodcesi/auth-api/config"
 	"github.com/goodfoodcesi/auth-api/logging"
 	"github.com/goodfoodcesi/auth-api/server"
 	"go.uber.org/zap"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
-	"io"
-	"net/http"
 
 	"github.com/gin-gonic/gin"
 )

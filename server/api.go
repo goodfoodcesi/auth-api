@@ -22,6 +22,7 @@ func SetupApi(cfg config.Config, logManager *logging.LogManager) *gin.Engine {
 	})
 
 	router.Use(gin.Recovery())
+	logManager.SetupHttp(router)
 
 	// Configuration de la connexion à la base de données
 	dbSource := fmt.Sprintf("postgresql://%s:%s@%s:%s/%s?sslmode=disable",
@@ -50,6 +51,7 @@ func SetupApi(cfg config.Config, logManager *logging.LogManager) *gin.Engine {
 
 	// Initialisation des contrôleurs
 	userController := controllers.NewUserController(queries, ctx)
+	authController := controllers.NewAuthController(queries, ctx, cfg.APISecret)
 
 	// Configuration des routes
 	api := router.Group("/auth")
@@ -57,6 +59,9 @@ func SetupApi(cfg config.Config, logManager *logging.LogManager) *gin.Engine {
 	// Initialisation des routes
 	userRoutes := routes.NewRouteUser(*userController)
 	userRoutes.UserRoute(api)
+
+	authRoutes := routes.NewRouteAuth(*authController)
+	authRoutes.AuthRoute(api)
 
 	return router
 }
