@@ -12,6 +12,7 @@ services:
       - DBPassword=authapi
       - DBName=authapi
       - APISecret=your-super-secret-jwt-token-with-at-least-32-characters-long
+      - APIRefreshSecret=your-super-secret-refresh-jwt-token-with-at-least-32-characters-long
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.auth.rule=Host(`api.goodfood.dev`) && PathPrefix(`/auth`)"

@@ -2,8 +2,8 @@ package controllers
 
 import (
 	"context"
-	"encoding/hex"
 	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -17,13 +17,14 @@ import (
 )
 
 type AuthController struct {
-	db        *db.Queries
-	ctx       context.Context
-	jwtSecret string
+	db            *db.Queries
+	ctx           context.Context
+	jwtSecret     string
+	refreshSecret string
 }
 
-func NewAuthController(db *db.Queries, ctx context.Context, jwtSecret string) *AuthController {
-	return &AuthController{db, ctx, jwtSecret}
+func NewAuthController(db *db.Queries, ctx context.Context, jwtSecret string, refreshSecret string) *AuthController {
+	return &AuthController{db, ctx, jwtSecret, refreshSecret}
 }
 
 func (ac *AuthController) Login(ctx *gin.Context) {
@@ -57,7 +58,6 @@ func (ac *AuthController) Login(ctx *gin.Context) {
 		return
 	}
 
-	// Vérification du mot de passe
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(payload.Password))
 	if err != nil {
 		ctx.JSON(http.StatusUnauthorized, gin.H{
@@ -67,8 +67,7 @@ func (ac *AuthController) Login(ctx *gin.Context) {
 		return
 	}
 
-	userID := hex.EncodeToString(user.UserID.Bytes[:])
-	// Génération des tokens
+	userID := fmt.Sprintf("%x-%x-%x-%x-%x", user.UserID.Bytes[0:4], user.UserID.Bytes[4:6], user.UserID.Bytes[6:8], user.UserID.Bytes[8:10], user.UserID.Bytes[10:16])
 	accessToken, err := utils.GenerateToken(userID, string(user.UserRole), ac.jwtSecret, time.Hour*24)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
@@ -78,7 +77,7 @@ func (ac *AuthController) Login(ctx *gin.Context) {
 		return
 	}
 
-	refreshToken, err := utils.GenerateToken(userID, string(user.UserRole), ac.jwtSecret, time.Hour*24*7)
+	refreshToken, err := utils.GenerateToken(userID, string(user.UserRole), ac.refreshSecret, time.Hour*24*7)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"status": "error",

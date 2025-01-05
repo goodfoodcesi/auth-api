@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -40,4 +41,11 @@ func ValidateToken(tokenString string, secret string) (*JWTClaims, error) {
 	}
 
 	return nil, jwt.ErrSignatureInvalid
+}
+
+func ExtractTokenFromHeader(bearerToken string) string {
+	if len(strings.Split(bearerToken, " ")) == 2 {
+		return strings.Split(bearerToken, " ")[1]
+	}
+	return ""
 }

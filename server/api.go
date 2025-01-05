@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/goodfoodcesi/auth-api/config"
@@ -10,11 +11,11 @@ import (
 	db "github.com/goodfoodcesi/auth-api/db/sqlc"
 	"github.com/goodfoodcesi/auth-api/logging"
 	"github.com/goodfoodcesi/auth-api/routes"
+	"github.com/goodfoodcesi/auth-api/utils"
 	"github.com/jackc/pgx/v5"
 )
 
 func SetupApi(cfg config.Config, logManager *logging.LogManager) *gin.Engine {
-	// Initialisation du router Gin
 	router := gin.New()
 
 	router.NoRoute(func(c *gin.Context) {
@@ -51,7 +52,7 @@ func SetupApi(cfg config.Config, logManager *logging.LogManager) *gin.Engine {
 
 	// Initialisation des contrôleurs
 	userController := controllers.NewUserController(queries, ctx)
-	authController := controllers.NewAuthController(queries, ctx, cfg.APISecret)
+	authController := controllers.NewAuthController(queries, ctx, cfg.APISecret, cfg.APIRefreshSecret)
 
 	// Configuration des routes
 	api := router.Group("/auth")
@@ -61,7 +62,28 @@ func SetupApi(cfg config.Config, logManager *logging.LogManager) *gin.Engine {
 	userRoutes.UserRoute(api)
 
 	authRoutes := routes.NewRouteAuth(*authController)
+
 	authRoutes.AuthRoute(api)
 
 	return router
+}
+
+func JWTInterceptor(cfg config.Config) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		tokenString := utils.ExtractTokenFromHeader(c.Request.Header.Get("Authorization"))
+		if tokenString == "" {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+			c.Abort()
+			return
+		}
+		claims, err := utils.ValidateToken(tokenString, cfg.APISecret)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+			c.Abort()
+			return
+		}
+		c.Set("user_id", claims.UserID)
+		c.Set("user_role", claims.UserRole)
+		c.Next()
+	}
 }
