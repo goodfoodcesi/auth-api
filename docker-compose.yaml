@@ -12,6 +12,7 @@ services:
       - PASSWORD_SECRET=your-super-secret-salt
       - JWT_ACCESS_SECRET=your-super-secret-jwt-token
       - JWT_REFRESH_SECRET=your-super-secret-refresh-jwt-token
+      - RABBITMQ_URL=amqp://guest:guest@goodfood-rabbitmq:5672/
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.auth.rule=Host(`api.goodfood.dev`) && PathPrefix(`/auth`)"

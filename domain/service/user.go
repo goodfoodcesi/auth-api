@@ -3,6 +3,8 @@ package service
 import (
 	"context"
 	"errors"
+	"github.com/goodfoodcesi/auth-api/domain/event"
+	"go.uber.org/zap"
 	"time"
 
 	"github.com/goodfoodcesi/auth-api/crypto"
@@ -14,9 +16,11 @@ import (
 )
 
 type UserService struct {
-	repo       repository.UserRepository
-	tokenMgr   *jwt.TokenManager
-	pwdManager *crypto.PasswordManager
+	repo             repository.UserRepository
+	tokenMgr         *jwt.TokenManager
+	pwdManager       *crypto.PasswordManager
+	messagingService *MessagingService
+	logger           *zap.Logger
 }
 
 type RegisterUserInput struct {
@@ -37,11 +41,19 @@ type LoginInput struct {
 	Password string `json:"password" validate:"required"`
 }
 
-func NewUserService(repo repository.UserRepository, tokenMgr *jwt.TokenManager, pwdManager *crypto.PasswordManager) *UserService {
+func NewUserService(
+	repo repository.UserRepository,
+	tokenMgr *jwt.TokenManager,
+	pwdManager *crypto.PasswordManager,
+	messagingService *MessagingService,
+	logger *zap.Logger,
+) *UserService {
 	return &UserService{
-		repo:       repo,
-		tokenMgr:   tokenMgr,
-		pwdManager: pwdManager,
+		repo:             repo,
+		tokenMgr:         tokenMgr,
+		pwdManager:       pwdManager,
+		messagingService: messagingService,
+		logger:           logger,
 	}
 }
 
@@ -94,6 +106,18 @@ func (s *UserService) Register(ctx context.Context, input RegisterUserInput) (*e
 		return nil, err
 	}
 
+	userCreatedEvent := event.UserCreatedEvent{
+		ID:        user.ID,
+		Email:     user.Email,
+		FirstName: user.FirstName,
+		LastName:  user.LastName,
+		Role:      string(user.Role),
+		CreatedAt: time.Now(),
+	}
+
+	if err := s.messagingService.PublishUserCreated(ctx, userCreatedEvent); err != nil {
+		s.logger.Error("failed to publish user created event", zap.Error(err))
+	}
 	return user, nil
 }
 

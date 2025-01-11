@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/goodfoodcesi/auth-api/infrastructure/messaging/rabbitmq"
 	"log"
 	"net/http"
 	"os"
@@ -38,6 +39,16 @@ func main() {
 	}
 	defer db.Close()
 
+	rabbit, err := rabbitmq.NewRabbitMQ(os.Getenv("RABBITMQ_URL"), logger)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	messagingService, err := service.NewMessagingService(rabbit, logger)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	tokenManager := jwt.NewTokenManager(
 		os.Getenv("JWT_ACCESS_SECRET"),
 		os.Getenv("JWT_REFRESH_SECRET"),
@@ -49,7 +60,7 @@ func main() {
 
 	// Initialiser les services
 	passwordManager := crypto.NewPasswordManager(os.Getenv("PASSWORD_SECRET"))
-	userService := service.NewUserService(userRepo, tokenManager, passwordManager)
+	userService := service.NewUserService(userRepo, tokenManager, passwordManager, messagingService, logger)
 
 	// Initialiser les handlers
 	userHandler := handler.NewUserHandler(userService, logger)
