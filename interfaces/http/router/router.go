@@ -1,6 +1,8 @@
 package router
 
 import (
+	"github.com/goodfoodcesi/auth-api/interfaces/http/response"
+	"net/http"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -37,11 +39,21 @@ func NewRouter(
 		MaxAge:           300,
 	}))
 
+	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
+		response.Error(w, http.StatusNotFound, "Not found", nil)
+	})
+	r.MethodNotAllowed(func(w http.ResponseWriter, r *http.Request) {
+		response.Error(w, http.StatusMethodNotAllowed, "Method not allowed", nil)
+	})
+
 	r.Route("/auth", func(r chi.Router) {
 		// Routes publiques
 		r.Group(func(r chi.Router) {
 			r.Post("/register", userHandler.Register)
 			r.Post("/login", userHandler.Login)
+			r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
+				response.JSON(w, http.StatusOK, map[string]string{"status": "ok"})
+			})
 		})
 
 		// Routes protégées

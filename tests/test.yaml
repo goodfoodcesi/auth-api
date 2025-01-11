@@ -4,12 +4,12 @@ testcases:
     steps:
       - type: http
         method: GET
-        url: {{.url}}/ping
+        url: {{.url}}/health
         timeout: 5
         assertions:
             - result.statuscode ShouldEqual 200
             - result.timeseconds ShouldBeLessThan 1
-            - result.bodyjson ShouldContainKey message
+            - result.bodyjson ShouldContainKey status
   - name: notfound
     steps:
       - type: http
