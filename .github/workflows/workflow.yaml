@@ -42,8 +42,15 @@ jobs:
           CGO_ENABLED=0 GOOS=linux go build -ldflags "-w" -o ./authapi main.go
       - name: Run api
         env:
-          DBHost: "ip"
-          Env: "dev"
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_USER: authapi
+          DB_PASSWORD: authapi
+          DB_NAME: authapi
+          PASSWORD_SECRET: your-super-secret-salt
+          JWT_ACCESS_SECRET: your-super-secret-jwt-token
+          JWT_REFRESH_SECRET: your-super-secret-refresh-jwt-token
+          RABBITMQ_URL: amqp://guest:guest@localhost:5672/
         run: |
           ./authapi &
             sleep 2
