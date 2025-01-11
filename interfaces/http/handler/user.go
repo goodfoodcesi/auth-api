@@ -38,9 +38,13 @@ func (h *UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 		h.logger.Error("validation failed", zap.Any("errors", validationErrors))
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		err := json.NewEncoder(w).Encode(map[string]interface{}{
 			"errors": validationErrors,
 		})
+		if err != nil {
+			h.logger.Error("failed to encode response", zap.Error(err))
+			return
+		}
 		return
 	}
 
@@ -78,9 +82,13 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 		h.logger.Error("validation failed", zap.Any("errors", validationErrors))
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		err := json.NewEncoder(w).Encode(map[string]interface{}{
 			"errors": validationErrors,
 		})
+		if err != nil {
+			h.logger.Error("failed to encode response", zap.Error(err))
+			return
+		}
 		return
 	}
 

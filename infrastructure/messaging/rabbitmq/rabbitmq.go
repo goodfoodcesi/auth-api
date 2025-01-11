@@ -146,9 +146,17 @@ func (r *RabbitMQ) Consume(queueName string, handler func([]byte) error) error {
 					zap.Error(err),
 					zap.String("queue", queueName),
 				)
-				msg.Nack(false, true) // requeue message
+				err := msg.Nack(false, true)
+				if err != nil {
+					r.logger.Error("failed to nack message", zap.Error(err))
+					return
+				} // requeue message
 			} else {
-				msg.Ack(false)
+				err := msg.Ack(false)
+				if err != nil {
+					r.logger.Error("failed to ack message", zap.Error(err))
+					return
+				}
 			}
 		}
 	}()

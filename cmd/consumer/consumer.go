@@ -19,7 +19,12 @@ func main() {
 	if err != nil {
 		log.Fatal("Failed to initialize logger:", err)
 	}
-	defer logger.Sync()
+	defer func(logger *zap.Logger) {
+		err := logger.Sync()
+		if err != nil {
+			log.Fatal("Failed to sync logger:", err)
+		}
+	}(logger)
 
 	dbConfig := database.Config{
 		Host:     os.Getenv("DB_HOST"),

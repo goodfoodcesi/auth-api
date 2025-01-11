@@ -58,6 +58,13 @@ jobs:
         run: |
           set -e
           venom run tests/test.yaml --var url=http://localhost:8080/auth
+  gosec:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Run Gosec Security Scanner
+        uses: securego/gosec@master
   build-feature:
       if: startsWith(github.ref, 'refs/heads/feature/')
       environment: feature

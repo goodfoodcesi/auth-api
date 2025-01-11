@@ -15,6 +15,9 @@ import (
 
 func main() {
 	logger, err := zap.NewProduction()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	dbConfig := database.Config{
 		Host:     os.Getenv("DB_HOST"),
@@ -26,14 +29,14 @@ func main() {
 
 	db, err := database.NewPostgresPool(dbConfig, logger)
 	if err != nil {
-		log.Fatal(err)
+		logger.Fatal("Failed to connect to database", zap.Error(err))
 	}
 	defer db.Close()
 
 	pwdManager := crypto.NewPasswordManager(os.Getenv("SECRET_KEY"))
 	hashedPassword, err := pwdManager.HashPassword("admin123")
 	if err != nil {
-		log.Fatal(err)
+		logger.Fatal("Failed to hash password", zap.Error(err))
 	}
 
 	adminUser := &entity.User{
@@ -50,5 +53,5 @@ func main() {
 		log.Fatal(err)
 	}
 
-	log.Println("Seed completed successfully")
+	logger.Info("Admin user created successfully")
 }
