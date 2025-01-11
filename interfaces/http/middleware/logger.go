@@ -93,21 +93,29 @@ func sanitizeBody(body []byte) (map[string]interface{}, error) {
 	redact = func(v interface{}) interface{} {
 		switch t := v.(type) {
 		case map[string]interface{}:
+			result := make(map[string]interface{})
 			for k, val := range t {
+				isSensitive := false
 				for _, sf := range sensitiveFields {
 					if strings.Contains(strings.ToLower(k), sf) {
-						t[k] = "REDACTED"
-						continue
+						isSensitive = true
+						break
 					}
 				}
-				t[k] = redact(val)
+
+				if isSensitive {
+					result[k] = "REDACTED"
+				} else {
+					result[k] = redact(val)
+				}
 			}
-			return t
+			return result
 		case []interface{}:
+			result := make([]interface{}, len(t))
 			for i, val := range t {
-				t[i] = redact(val)
+				result[i] = redact(val)
 			}
-			return t
+			return result
 		default:
 			return v
 		}
