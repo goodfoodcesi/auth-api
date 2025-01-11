@@ -1,39 +1,70 @@
 package main
 
 import (
-	"context"
-	"io"
+	"log"
 	"net/http"
+	"os"
+	"time"
 
-	"github.com/goodfoodcesi/auth-api/config"
-	"github.com/goodfoodcesi/auth-api/logging"
-	"github.com/goodfoodcesi/auth-api/server"
+	"github.com/goodfoodcesi/auth-api/crypto"
+	"github.com/goodfoodcesi/auth-api/domain/service"
+	"github.com/goodfoodcesi/auth-api/infrastructure/database"
+	"github.com/goodfoodcesi/auth-api/infrastructure/database/repository"
+	"github.com/goodfoodcesi/auth-api/infrastructure/jwt"
+	"github.com/goodfoodcesi/auth-api/infrastructure/logger"
+	"github.com/goodfoodcesi/auth-api/interfaces/http/handler"
+	"github.com/goodfoodcesi/auth-api/interfaces/http/router"
 	"go.uber.org/zap"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
-
-	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	cfg := config.LoadConfig()
-	logManager := logging.NewLogManager(cfg.Env)
-	loggerFromCtx := logging.FromContext(context.Background())
+	logger, err := logger.NewLogger()
+	if err != nil {
+		log.Fatal("Failed to initialize logger:", err)
+	}
+	defer logger.Sync()
 
-	if cfg.Env != "dev" {
-		tracer.Start(
-			tracer.WithService("auth-api"),
-			tracer.WithEnv(cfg.Env),
-			tracer.WithServiceVersion("0.0.1"),
-		)
-		defer tracer.Stop()
-		gin.DefaultWriter = io.Discard
+	dbConfig := database.Config{
+		Host:     os.Getenv("DB_HOST"),
+		Port:     os.Getenv("DB_PORT"),
+		User:     os.Getenv("DB_USER"),
+		Password: os.Getenv("DB_PASSWORD"),
+		DBName:   os.Getenv("DB_NAME"),
 	}
 
-	api := server.SetupApi(cfg, logManager)
-
-	loggerFromCtx.Info("Starting server on port 8080", zap.String("env", cfg.Env))
-	err := http.ListenAndServe(":8080", api)
+	db, err := database.NewPostgresPool(dbConfig, logger)
 	if err != nil {
-		loggerFromCtx.Fatal("Failed to start server", zap.Error(err))
+		logger.Fatal("Failed to connect to database", zap.Error(err))
+	}
+	defer db.Close()
+
+	tokenManager := jwt.NewTokenManager(
+		os.Getenv("JWT_ACCESS_SECRET"),
+		os.Getenv("JWT_REFRESH_SECRET"),
+		time.Hour,    // Access token TTL
+		time.Hour*24, // Refresh token TTL
+	)
+
+	userRepo := repository.NewUserRepository(db)
+
+	// Initialiser les services
+	passwordManager := crypto.NewPasswordManager(os.Getenv("PASSWORD_SECRET"))
+	userService := service.NewUserService(userRepo, tokenManager, passwordManager)
+
+	// Initialiser les handlers
+	userHandler := handler.NewUserHandler(userService, logger)
+
+	// Configurer le routeur
+	r := router.NewRouter(userHandler, logger, tokenManager)
+
+	// Démarrer le serveur
+	server := &http.Server{
+		Addr:    ":8080",
+		Handler: r,
+	}
+
+	logger.Info("Server starting on :8080")
+	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		logger.Fatal("Server failed to start", zap.Error(err))
 	}
 }

@@ -4,21 +4,23 @@ services:
     expose:
       - "8080"
     environment:
-      - Env=dev
-      - APIPort=:8080
-      - DBHost=postgres
-      - DBPort=5432
-      - DBUser=authapi
-      - DBPassword=authapi
-      - DBName=authapi
-      - APISecret=your-super-secret-jwt-token-with-at-least-32-characters-long
-      - APIRefreshSecret=your-super-secret-refresh-jwt-token-with-at-least-32-characters-long
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=authapi
+      - DB_PASSWORD=authapi
+      - DB_NAME=authapi
+      - PASSWORD_SECRET=your-super-secret-salt
+      - JWT_ACCESS_SECRET=your-super-secret-jwt-token
+      - JWT_REFRESH_SECRET=your-super-secret-refresh-jwt-token
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.auth.rule=Host(`api.goodfood.dev`) && PathPrefix(`/auth`)"
       - "traefik.http.routers.auth.entrypoints=web"
       - "traefik.http.services.auth.loadbalancer.server.port=8080"
       - "traefik.docker.network=goodfood-api"
+    depends_on:
+      postgres:
+        condition: service_healthy
 
   postgres:
     image: postgres:17
@@ -30,6 +32,10 @@ services:
       - "5432:5432"
     volumes:
       - ./postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U authapi"]
+      interval: 10s
+      timeout: 5s
 
 networks:
   default:

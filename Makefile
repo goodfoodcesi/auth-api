@@ -9,6 +9,6 @@ stop:
 logs:
 	docker logs -f auth-api-authapi-1
 migrate:
-	migrate -path db/migration -database  "postgresql://authapi:authapi@localhost:5432/authapi?sslmode=disable" -verbose up
+	migrate -path infrastructure/database/migration -database  "postgresql://authapi:authapi@localhost:5432/authapi?sslmode=disable" -verbose up
 migrate-down:
-	migrate -path db/migration -database  "postgresql://authapi:authapi@localhost:5432/authapi?sslmode=disable" -verbose down
+	migrate -path infrastructure/database/migration -database  "postgresql://authapi:authapi@localhost:5432/authapi?sslmode=disable" -verbose down
