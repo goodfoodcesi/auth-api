@@ -13,23 +13,12 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      - name: Set up Go cache
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cache/go-build
-            ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
       - name: Download venom binary
         run: curl -L https://github.com/ovh/venom/releases/download/v1.1.0/venom.linux-amd64 -o /usr/local/bin/venom
-
       - name: Make venom executable and verify
         run: |
           chmod +x /usr/local/bin/venom
           ls -l /usr/local/bin/venom
-
       - name: Check venom version
         run: venom version
       - name: run docker-compose
