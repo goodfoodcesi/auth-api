@@ -63,7 +63,8 @@ func (h *UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(user); err != nil {
+	userResponse := response.ToUserResponse(user)
+	if err := json.NewEncoder(w).Encode(userResponse); err != nil {
 		h.logger.Error("failed to encode response", zap.Error(err))
 		response.Error(w, http.StatusInternalServerError, "Internal Server Error", nil)
 		return
@@ -107,7 +108,8 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	if err := json.NewEncoder(w).Encode(user); err != nil {
+	userResponse := response.ToUserResponse(user)
+	if err := json.NewEncoder(w).Encode(userResponse); err != nil {
 		h.logger.Error("failed to encode response", zap.Error(err))
 		response.Error(w, http.StatusInternalServerError, "Failed to encode response", nil)
 		return
@@ -156,7 +158,8 @@ func (h *UserHandler) GetProfile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(user); err != nil {
+	userResponse := response.ToUserResponse(user)
+	if err := json.NewEncoder(w).Encode(userResponse); err != nil {
 		h.logger.Error("failed to encode response", zap.Error(err))
 		response.Error(w, http.StatusInternalServerError, "Failed to encode response", nil)
 		return

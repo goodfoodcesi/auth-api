@@ -1,9 +1,9 @@
 -- name: CreateUser :one
 INSERT INTO users (
-    id, firstname, lastname, email, password_hash, role
+     firstname, lastname, email, password_hash, role
 ) VALUES (
-             $1, $2, $3, $4, $5, $6
-         ) RETURNING id, firstname, lastname, email, role, created_at, updated_at;
+             $1, $2, $3, $4, $5
+         ) RETURNING *;
 
 -- name: GetUserByEmail :one
 SELECT * FROM users WHERE email = $1;

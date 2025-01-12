@@ -2,7 +2,7 @@ package jwt
 
 import (
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/goodfoodcesi/auth-api/domain/entity"
+	db "github.com/goodfoodcesi/auth-api/infrastructure/database/sqlc"
 	"time"
 )
 
@@ -12,7 +12,7 @@ type TokenPair struct {
 }
 
 type Claims struct {
-	Role   entity.Role `json:"role"`
+	Role   db.UserRole `json:"role"`
 	UserID string      `json:"user_id"`
 	jwt.RegisteredClaims
 }
@@ -33,7 +33,7 @@ func NewTokenManager(accessSecret, refreshSecret string, accessTTL, refreshTTL t
 	}
 }
 
-func (tm *TokenManager) GenerateTokenPair(userID string, role entity.Role) (*TokenPair, error) {
+func (tm *TokenManager) GenerateTokenPair(userID string, role db.UserRole) (*TokenPair, error) {
 	claims := Claims{
 		role,
 		userID,

@@ -7,6 +7,7 @@ require (
 	github.com/go-chi/cors v1.2.1
 	github.com/go-playground/validator/v10 v10.23.0
 	github.com/golang-jwt/jwt/v5 v5.2.1
+	github.com/goodfoodcesi/api-utils-go v0.0.8-0.20250112182055-b3767bf419b8
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.7.2
 	github.com/rabbitmq/amqp091-go v1.10.0

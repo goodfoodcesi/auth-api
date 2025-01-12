@@ -31,6 +31,8 @@ func NewRabbitMQ(url string, logger *zap.Logger) (*RabbitMQ, error) {
 		return nil, fmt.Errorf("failed to open channel: %w", err)
 	}
 
+	logger.Info("Connected to RabbitMQ")
+
 	return &RabbitMQ{
 		conn:      conn,
 		channel:   ch,
@@ -101,6 +103,10 @@ func (r *RabbitMQ) BindQueue(config BindingConfig) error {
 }
 
 func (r *RabbitMQ) Publish(ctx context.Context, exchange, routingKey string, message interface{}) error {
+	if err := r.ensureConnection(); err != nil {
+		return fmt.Errorf("failed to ensure RabbitMQ connection: %w", err)
+	}
+
 	body, err := json.Marshal(message)
 	if err != nil {
 		return fmt.Errorf("failed to marshal message: %w", err)
@@ -122,6 +128,26 @@ func (r *RabbitMQ) Publish(ctx context.Context, exchange, routingKey string, mes
 		return fmt.Errorf("failed to publish message: %w", err)
 	}
 
+	return nil
+}
+
+func (r *RabbitMQ) ensureConnection() error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	if r.conn == nil || r.conn.IsClosed() {
+		var err error
+		r.conn, err = amqp.Dial(r.conn.LocalAddr().String())
+		if err != nil {
+			return fmt.Errorf("failed to reconnect to RabbitMQ: %w", err)
+		}
+
+		r.channel, err = r.conn.Channel()
+		if err != nil {
+			r.conn.Close()
+			return fmt.Errorf("failed to reopen channel: %w", err)
+		}
+	}
 	return nil
 }
 

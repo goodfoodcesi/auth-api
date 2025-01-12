@@ -52,7 +52,7 @@ func main() {
 	userConsumer := consumer.NewUserConsumer(logger)
 
 	go func() {
-		err = rabbit.Consume(rabbitmq.UserCreatedQueue, userConsumer.HandleUserCreated)
+		err = rabbit.Consume(rabbitmq.ClientCreatedQueueClientAPI, userConsumer.HandleUserCreated)
 		if err != nil {
 			logger.Error("failed to consume user created event", zap.Error(err))
 			stop <- syscall.SIGTERM

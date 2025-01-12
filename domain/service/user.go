@@ -3,15 +3,14 @@ package service
 import (
 	"context"
 	"errors"
-	"github.com/goodfoodcesi/auth-api/domain/event"
+	"github.com/goodfoodcesi/api-utils-go/pkg/event"
 	"go.uber.org/zap"
 	"time"
 
 	"github.com/goodfoodcesi/auth-api/crypto"
-	"github.com/goodfoodcesi/auth-api/domain/entity"
 	"github.com/goodfoodcesi/auth-api/domain/repository"
+	"github.com/goodfoodcesi/auth-api/infrastructure/database/sqlc"
 	"github.com/goodfoodcesi/auth-api/infrastructure/jwt"
-	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
@@ -28,7 +27,7 @@ type RegisterUserInput struct {
 	LastName  string      `json:"last_name" validate:"required,min=2,max=100"`
 	Email     string      `json:"email" validate:"required,email"`
 	Password  string      `json:"password" validate:"required,min=8"`
-	Role      entity.Role `json:"role" validate:"required,oneof=client manager driver"`
+	Role      db.UserRole `json:"role" validate:"required,oneof=client manager driver"`
 }
 
 type UpdateUserInput struct {
@@ -57,20 +56,20 @@ func NewUserService(
 	}
 }
 
-func (s *UserService) Update(ctx context.Context, id pgtype.UUID, input UpdateUserInput) (*entity.User, error) {
+func (s *UserService) Update(ctx context.Context, id pgtype.UUID, input UpdateUserInput) (*db.User, error) {
 	existingUser, _ := s.repo.GetByID(ctx, id)
 	if existingUser == nil {
 		return nil, errors.New("user not found")
 	}
 
-	user := &entity.User{
+	user := &db.User{
 		ID:        existingUser.ID,
-		FirstName: input.FirstName,
-		LastName:  input.LastName,
+		Firstname: input.FirstName,
+		Lastname:  input.LastName,
 		Email:     existingUser.Email,
 		Role:      existingUser.Role,
 		CreatedAt: existingUser.CreatedAt,
-		UpdatedAt: time.Now(),
+		UpdatedAt: pgtype.Timestamptz{Time: time.Now()},
 	}
 
 	if err := s.repo.Update(ctx, user); err != nil {
@@ -80,7 +79,7 @@ func (s *UserService) Update(ctx context.Context, id pgtype.UUID, input UpdateUs
 	return user, nil
 }
 
-func (s *UserService) Register(ctx context.Context, input RegisterUserInput) (*entity.User, error) {
+func (s *UserService) Register(ctx context.Context, input RegisterUserInput) (*db.User, error) {
 	existingUser, _ := s.repo.GetByEmail(ctx, input.Email)
 	if existingUser != nil {
 		return nil, errors.New("email already exists")
@@ -91,26 +90,26 @@ func (s *UserService) Register(ctx context.Context, input RegisterUserInput) (*e
 		return nil, err
 	}
 
-	user := &entity.User{
-		ID:           uuid.New(),
-		FirstName:    input.FirstName,
-		LastName:     input.LastName,
+	user := &db.User{
+		Firstname:    input.FirstName,
+		Lastname:     input.LastName,
 		Email:        input.Email,
 		PasswordHash: hashedPassword,
 		Role:         input.Role,
-		CreatedAt:    time.Now(),
-		UpdatedAt:    time.Now(),
+		CreatedAt:    pgtype.Timestamptz{Time: time.Now()},
+		UpdatedAt:    pgtype.Timestamptz{Time: time.Now()},
 	}
 
-	if err := s.repo.Create(ctx, user); err != nil {
+	user, err = s.repo.Create(ctx, user)
+	if err != nil {
 		return nil, err
 	}
 
 	userCreatedEvent := event.UserCreatedEvent{
 		ID:        user.ID,
 		Email:     user.Email,
-		FirstName: user.FirstName,
-		LastName:  user.LastName,
+		FirstName: user.Firstname,
+		LastName:  user.Lastname,
 		Role:      string(user.Role),
 		CreatedAt: time.Now(),
 	}
@@ -139,7 +138,7 @@ func (s *UserService) Login(ctx context.Context, input LoginInput) (*jwt.TokenPa
 	return tokens, nil
 }
 
-func (s *UserService) GetByID(ctx context.Context, id pgtype.UUID) (*entity.User, error) {
+func (s *UserService) GetByID(ctx context.Context, id pgtype.UUID) (*db.User, error) {
 	user, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return nil, err

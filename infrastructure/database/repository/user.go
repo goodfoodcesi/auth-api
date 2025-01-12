@@ -3,37 +3,40 @@ package repository
 import (
 	"context"
 
-	"github.com/goodfoodcesi/auth-api/domain/entity"
-	sqlc "github.com/goodfoodcesi/auth-api/infrastructure/database/sqlc"
+	"github.com/goodfoodcesi/auth-api/infrastructure/database/sqlc"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type UserRepository struct {
-	db *pgxpool.Pool
-	q  *sqlc.Queries
+	dbPool *pgxpool.Pool
+	q      *db.Queries
 }
 
-func NewUserRepository(db *pgxpool.Pool) *UserRepository {
+func NewUserRepository(dbPool *pgxpool.Pool) *UserRepository {
 	return &UserRepository{
-		db: db,
-		q:  sqlc.New(db),
+		dbPool: dbPool,
+		q:      db.New(dbPool),
 	}
 }
 
-func (r *UserRepository) Create(ctx context.Context, user *entity.User) error {
-	_, err := r.q.CreateUser(ctx, sqlc.CreateUserParams{
-		ID:           pgtype.UUID{Bytes: user.ID, Valid: true},
-		Firstname:    user.FirstName,
-		Lastname:     user.LastName,
+func (r *UserRepository) Create(ctx context.Context, user *db.User) (*db.User, error) {
+	dbUser, err := r.q.CreateUser(ctx, db.CreateUserParams{
+		Firstname:    user.Firstname,
+		Lastname:     user.Lastname,
 		Email:        user.Email,
 		PasswordHash: user.PasswordHash,
-		Role:         sqlc.UserRole(user.Role),
+		Role:         user.Role,
 	})
-	return err
+
+	if err != nil {
+		return nil, err
+	}
+
+	return mapDBUserToEntity(dbUser), nil
 }
 
-func (r *UserRepository) GetByEmail(ctx context.Context, email string) (*entity.User, error) {
+func (r *UserRepository) GetByEmail(ctx context.Context, email string) (*db.User, error) {
 	dbUser, err := r.q.GetUserByEmail(ctx, email)
 	if err != nil {
 		return nil, err
@@ -41,7 +44,7 @@ func (r *UserRepository) GetByEmail(ctx context.Context, email string) (*entity.
 	return mapDBUserToEntity(dbUser), nil
 }
 
-func (r *UserRepository) GetByID(ctx context.Context, id pgtype.UUID) (*entity.User, error) {
+func (r *UserRepository) GetByID(ctx context.Context, id pgtype.UUID) (*db.User, error) {
 	dbUser, err := r.q.GetUserByID(ctx, id)
 	if err != nil {
 		return nil, err
@@ -49,11 +52,11 @@ func (r *UserRepository) GetByID(ctx context.Context, id pgtype.UUID) (*entity.U
 	return mapDBUserToEntity(dbUser), nil
 }
 
-func (r *UserRepository) Update(ctx context.Context, user *entity.User) error {
-	err := r.q.UpdateUser(ctx, sqlc.UpdateUserParams{
-		ID:        pgtype.UUID{Bytes: user.ID, Valid: true},
-		Firstname: user.FirstName,
-		Lastname:  user.LastName,
+func (r *UserRepository) Update(ctx context.Context, user *db.User) error {
+	err := r.q.UpdateUser(ctx, db.UpdateUserParams{
+		ID:        user.ID,
+		Firstname: user.Firstname,
+		Lastname:  user.Lastname,
 	})
 	if err != nil {
 		return err
@@ -61,15 +64,15 @@ func (r *UserRepository) Update(ctx context.Context, user *entity.User) error {
 	return nil
 }
 
-func mapDBUserToEntity(dbUser sqlc.User) *entity.User {
-	return &entity.User{
-		ID:           dbUser.ID.Bytes,
-		FirstName:    dbUser.Firstname,
-		LastName:     dbUser.Lastname,
+func mapDBUserToEntity(dbUser db.User) *db.User {
+	return &db.User{
+		ID:           dbUser.ID,
+		Firstname:    dbUser.Firstname,
+		Lastname:     dbUser.Lastname,
 		Email:        dbUser.Email,
 		PasswordHash: dbUser.PasswordHash,
-		Role:         entity.Role(dbUser.Role),
-		CreatedAt:    dbUser.CreatedAt.Time,
-		UpdatedAt:    dbUser.UpdatedAt.Time,
+		Role:         dbUser.Role,
+		CreatedAt:    dbUser.CreatedAt,
+		UpdatedAt:    dbUser.UpdatedAt,
 	}
 }

@@ -2,7 +2,7 @@ package consumer
 
 import (
 	"encoding/json"
-	"github.com/goodfoodcesi/auth-api/domain/event"
+	"github.com/goodfoodcesi/api-utils-go/pkg/event"
 	"go.uber.org/zap"
 )
 

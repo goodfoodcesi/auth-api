@@ -13,46 +13,35 @@ import (
 
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (
-    id, firstname, lastname, email, password_hash, role
+     firstname, lastname, email, password_hash, role
 ) VALUES (
-             $1, $2, $3, $4, $5, $6
-         ) RETURNING id, firstname, lastname, email, role, created_at, updated_at
+             $1, $2, $3, $4, $5
+         ) RETURNING id, firstname, lastname, email, password_hash, role, created_at, updated_at
 `
 
 type CreateUserParams struct {
-	ID           pgtype.UUID `json:"id"`
-	Firstname    string      `json:"firstname"`
-	Lastname     string      `json:"lastname"`
-	Email        string      `json:"email"`
-	PasswordHash string      `json:"password_hash"`
-	Role         UserRole    `json:"role"`
+	Firstname    string   `json:"firstname"`
+	Lastname     string   `json:"lastname"`
+	Email        string   `json:"email"`
+	PasswordHash string   `json:"password_hash"`
+	Role         UserRole `json:"role"`
 }
 
-type CreateUserRow struct {
-	ID        pgtype.UUID        `json:"id"`
-	Firstname string             `json:"firstname"`
-	Lastname  string             `json:"lastname"`
-	Email     string             `json:"email"`
-	Role      UserRole           `json:"role"`
-	CreatedAt pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
-}
-
-func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (CreateUserRow, error) {
+func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
 	row := q.db.QueryRow(ctx, createUser,
-		arg.ID,
 		arg.Firstname,
 		arg.Lastname,
 		arg.Email,
 		arg.PasswordHash,
 		arg.Role,
 	)
-	var i CreateUserRow
+	var i User
 	err := row.Scan(
 		&i.ID,
 		&i.Firstname,
 		&i.Lastname,
 		&i.Email,
+		&i.PasswordHash,
 		&i.Role,
 		&i.CreatedAt,
 		&i.UpdatedAt,

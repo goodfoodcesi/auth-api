@@ -17,6 +17,10 @@ github.com/go-playground/validator/v10 v10.23.0 h1:/PwmTwZhS0dPkav3cdK9kV1FsAmrL
 github.com/go-playground/validator/v10 v10.23.0/go.mod h1:dbuPbCMFw/DrkbEynArYaCwl3amGuJotoKCe95atGMM=
 github.com/golang-jwt/jwt/v5 v5.2.1 h1:OuVbFODueb089Lh128TAcimifWaLhJwVflnrgM17wHk=
 github.com/golang-jwt/jwt/v5 v5.2.1/go.mod h1:pqrtFR0X4osieyHYxtmOUWsAWrfe1Q5UVIyoH402zdk=
+github.com/goodfoodcesi/api-utils-go v0.0.8-0.20250112164012-d7785c99966b h1:rJn0n7E+e/i9AiE0uuFWB9zhE1MgjIUe42Pa+gLod+U=
+github.com/goodfoodcesi/api-utils-go v0.0.8-0.20250112164012-d7785c99966b/go.mod h1:9JElKZpAzbqY2nsTsQIdMA/Pfz/xSESgpeHZWk3CEWM=
+github.com/goodfoodcesi/api-utils-go v0.0.8-0.20250112182055-b3767bf419b8 h1:sTo0N2LEeyMLQiQA75jWS2UPYu+lxXXR7ct7xK0r1dg=
+github.com/goodfoodcesi/api-utils-go v0.0.8-0.20250112182055-b3767bf419b8/go.mod h1:xxesSm7fZXcWcl//Q4JpvrPsZ2CWvGAZGIqqhlURlfk=
 github.com/google/uuid v1.6.0 h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=
 github.com/google/uuid v1.6.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
 github.com/jackc/pgpassfile v1.0.0 h1:/6Hmqy13Ss2zCq62VdNG8tM1wchn8zjSGOBJ6icpsIM=

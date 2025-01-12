@@ -1,20 +1,13 @@
-// internal/infrastructure/messaging/rabbitmq/constants.go
 package rabbitmq
 
 const (
 	// Exchanges
-	UserExchange  = "user.events"
-	EmailExchange = "email.events"
+	ClientExchange = "client.events"
 
 	// Queues
-	UserCreatedQueue  = "user.created"
-	UserUpdatedQueue  = "user.updated"
-	UserDeletedQueue  = "user.deleted"
-	WelcomeEmailQueue = "email.welcome"
+	ClientCreatedQueueNotificationAPI = "client.created.notification-api"
+	ClientCreatedQueueClientAPI       = "client.created.client-api"
 
-	// Routing Keys
-	UserCreatedKey  = "user.created"
-	UserUpdatedKey  = "user.updated"
-	UserDeletedKey  = "user.deleted"
-	WelcomeEmailKey = "email.welcome"
+	// Routing Keys (not needed for fanout, but keeping for reference)
+	ClientCreatedKey = "client.created"
 )

@@ -2,11 +2,12 @@ package main
 
 import (
 	"context"
+	db "github.com/goodfoodcesi/auth-api/infrastructure/database/sqlc"
+	"github.com/jackc/pgx/v5/pgtype"
 	"log"
 	"os"
 
 	"github.com/goodfoodcesi/auth-api/crypto"
-	"github.com/goodfoodcesi/auth-api/domain/entity"
 	"github.com/goodfoodcesi/auth-api/infrastructure/database"
 	"github.com/goodfoodcesi/auth-api/infrastructure/database/repository"
 	"github.com/google/uuid"
@@ -27,11 +28,11 @@ func main() {
 		DBName:   os.Getenv("DB_NAME"),
 	}
 
-	db, err := database.NewPostgresPool(dbConfig, logger)
+	dbConn, err := database.NewPostgresPool(dbConfig, logger)
 	if err != nil {
 		logger.Fatal("Failed to connect to database", zap.Error(err))
 	}
-	defer db.Close()
+	defer dbConn.Close()
 
 	pwdManager := crypto.NewPasswordManager(os.Getenv("SECRET_KEY"))
 	hashedPassword, err := pwdManager.HashPassword("admin123")
@@ -39,17 +40,17 @@ func main() {
 		logger.Fatal("Failed to hash password", zap.Error(err))
 	}
 
-	adminUser := &entity.User{
-		ID:           uuid.New(),
-		FirstName:    "Admin",
-		LastName:     "User",
+	adminUser := &db.User{
+		ID:           pgtype.UUID{Bytes: uuid.New()},
+		Firstname:    "Admin",
+		Lastname:     "User",
 		Email:        "admin@example.com",
 		PasswordHash: hashedPassword,
-		Role:         entity.RoleAdmin,
+		Role:         db.UserRoleAdmin,
 	}
 
-	userRepo := repository.NewUserRepository(db)
-	if err := userRepo.Create(context.Background(), adminUser); err != nil {
+	userRepo := repository.NewUserRepository(dbConn)
+	if _, err := userRepo.Create(context.Background(), adminUser); err != nil {
 		log.Fatal(err)
 	}
 

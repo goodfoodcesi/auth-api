@@ -54,6 +54,7 @@ jobs:
             context: .
             push: true
             tags: ${{ env.REGISTRY }}/${{ env.REGISTRY_NAMESPACE }}/${{ env.IMAGE_NAME }}:feature-${{ github.ref_name }}
+#TODO FIX LES BUILD AVEC LA REFACTO
   build-dev:
     if: github.ref == 'refs/heads/develop'
     environment: dev

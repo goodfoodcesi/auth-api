@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/goodfoodcesi/auth-api/infrastructure/database/repository"
 	"github.com/goodfoodcesi/auth-api/infrastructure/messaging/rabbitmq"
 	"log"
 	"net/http"
@@ -10,7 +11,6 @@ import (
 	"github.com/goodfoodcesi/auth-api/crypto"
 	"github.com/goodfoodcesi/auth-api/domain/service"
 	"github.com/goodfoodcesi/auth-api/infrastructure/database"
-	"github.com/goodfoodcesi/auth-api/infrastructure/database/repository"
 	"github.com/goodfoodcesi/auth-api/infrastructure/jwt"
 	"github.com/goodfoodcesi/auth-api/infrastructure/logger"
 	"github.com/goodfoodcesi/auth-api/interfaces/http/handler"

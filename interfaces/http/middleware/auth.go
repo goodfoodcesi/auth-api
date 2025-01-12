@@ -2,12 +2,12 @@ package middleware
 
 import (
 	"context"
+	db "github.com/goodfoodcesi/auth-api/infrastructure/database/sqlc"
 	"net/http"
 	"strings"
 
 	"github.com/goodfoodcesi/auth-api/interfaces/http/response"
 
-	"github.com/goodfoodcesi/auth-api/domain/entity"
 	"github.com/goodfoodcesi/auth-api/infrastructure/jwt"
 	"go.uber.org/zap"
 )
@@ -42,7 +42,7 @@ func AuthMiddleware(logger *zap.Logger, tm *jwt.TokenManager) func(http.Handler)
 	}
 }
 
-func RequireRole(requiredRole entity.Role) func(http.Handler) http.Handler {
+func RequireRole(requiredRole db.UserRole) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			role := r.Context().Value("userRole")
@@ -51,7 +51,7 @@ func RequireRole(requiredRole entity.Role) func(http.Handler) http.Handler {
 				return
 			}
 
-			if role.(entity.Role) != requiredRole {
+			if role.(db.UserRole) != requiredRole {
 				response.Error(w, http.StatusForbidden, "Forbidden", nil)
 				return
 			}
