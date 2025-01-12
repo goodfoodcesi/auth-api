@@ -57,8 +57,8 @@ func main() {
 	tokenManager := jwt.NewTokenManager(
 		os.Getenv("JWT_ACCESS_SECRET"),
 		os.Getenv("JWT_REFRESH_SECRET"),
-		time.Hour,    // Access token TTL
-		time.Hour*24, // Refresh token TTL
+		time.Hour*24,    // Access token TTL
+		time.Hour*24*30, // Refresh token TTL
 	)
 
 	userRepo := repository.NewUserRepository(db)

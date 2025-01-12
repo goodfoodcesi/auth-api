@@ -17,6 +17,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.auth.rule=Host(`api.goodfood.dev`) && PathPrefix(`/auth`)"
       - "traefik.http.routers.auth.entrypoints=web"
+      - "traefik.http.services.auth.loadbalancer.healthcheck.path=/auth/health"
       - "traefik.http.services.auth.loadbalancer.server.port=8080"
       - "traefik.docker.network=goodfood-api"
     depends_on:
