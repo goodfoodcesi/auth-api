@@ -32,20 +32,12 @@ jobs:
 
       - name: Check venom version
         run: venom version
-      - name: edit hosts file
-        run: echo "127.0.0.1 api.goodfood.dev" | sudo tee -a /etc/hosts
-      - name: create docker network
-        run: docker network create goodfood-api
-      - name: Start RabbitMQ
-        run: docker compose -f docker-compose-rabbitmq.yaml -p rabbitmq up  -d
-      - name: Start API + Postgres
-        run: docker compose -f docker-compose.yaml up -d
-      - name: Run traefik
-        run: docker compose -f docker-compose-traefik.yaml up -d
+      - name: run docker-compose
+        run: docker-compose -f docker-compose.test.yaml up -d
       - name: Run tests
         run: |
           set -e
-          venom run tests/test.yaml --var url=http://api.goodfood.dev/auth
+          venom run tests/test.yaml --var url=http://localhost:8080/auth
   gosec:
     runs-on: ubuntu-latest
     steps:
