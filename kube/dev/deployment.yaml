@@ -11,7 +11,6 @@ spec:
   template:
 
     metadata:
-
       annotations:
         ad.datadoghq.com/auth-api.logs: '[{"source": "kubernetes", "service": "auth-api", "env": "dev"}]'
         ad.datadoghq.com/auth-api.apm: '[{"service_name": "auth-api", "env": "dev"}]'

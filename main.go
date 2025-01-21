@@ -1,11 +1,14 @@
 package main
 
 import (
+	"context"
 	"github.com/goodfoodcesi/auth-api/infrastructure/database/repository"
 	"github.com/goodfoodcesi/auth-api/infrastructure/messaging/rabbitmq"
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/goodfoodcesi/auth-api/crypto"
@@ -23,12 +26,8 @@ func main() {
 	if err != nil {
 		log.Fatal("Failed to initialize logger:", err)
 	}
-	defer func(logger *zap.Logger) {
-		err := logger.Sync()
-		if err != nil {
-			log.Fatal("Failed to sync logger:", err)
-		}
-	}(logger)
+	//nolint:errcheck
+	defer logger.Sync()
 
 	dbConfig := database.Config{
 		Host:     os.Getenv("DB_HOST"),
@@ -48,6 +47,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer rabbit.Close()
 
 	messagingService, err := service.NewMessagingService(rabbit, logger)
 	if err != nil {
@@ -62,25 +62,40 @@ func main() {
 	)
 
 	userRepo := repository.NewUserRepository(db)
-
-	// Initialiser les services
 	passwordManager := crypto.NewPasswordManager(os.Getenv("PASSWORD_SECRET"))
 	userService := service.NewUserService(userRepo, tokenManager, passwordManager, messagingService, logger)
-
-	// Initialiser les handlers
 	userHandler := handler.NewUserHandler(userService, logger)
-
-	// Configurer le routeur
 	r := router.NewRouter(userHandler, logger, tokenManager)
 
-	// Démarrer le serveur
 	server := &http.Server{
 		Addr:    ":8080",
 		Handler: r,
 	}
 
-	logger.Info("Server starting on :8080")
-	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		logger.Fatal("Server failed to start", zap.Error(err))
+	// Channel pour recevoir les signaux d'interruption
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
+
+	// Démarrer le serveur dans une goroutine
+	go func() {
+		logger.Info("Server starting on :8080")
+		if err := server.ListenAndServe(); err != nil {
+			logger.Fatal("Server failed to start", zap.Error(err))
+		}
+	}()
+
+	// Attendre le signal d'arrêt
+	<-stop
+	logger.Info("Shutting down server...")
+
+	// Créer un contexte avec timeout pour le shutdown
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	// Arrêter le serveur HTTP
+	if err := server.Shutdown(ctx); err != nil {
+		logger.Error("Server forced to shutdown:", zap.Error(err))
 	}
+
+	logger.Info("Server gracefully stopped")
 }
