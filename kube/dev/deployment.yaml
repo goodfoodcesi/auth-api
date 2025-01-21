@@ -21,17 +21,20 @@ spec:
       imagePullSecrets:
         - name: scw-registry-secret
       containers:
-        - name: tracking-api
+        - name: auth-api
           image: rg.fr-par.scw.cloud/goodfood/auth-api:dev
           ports:
             - containerPort: 8080
           env:
-            - name: Env
-              value: dev
-            - name: APIPort
-              value: ":8080"
-            - name: DBHost
-              value: "db-service" # Mettez l'adresse correcte ici
+            - name: RABBITMQ_URL
+              value: amqp://guest:guest@rabbitmq:5672/
+            - name: DB_HOST
+              value: postgresdb
+            - name: DB_PORT
+              value: "5432"
+          envFrom:
+            - configMapRef:
+                name: db-secret-credentials
           resources:
             requests:
               memory: "64Mi"

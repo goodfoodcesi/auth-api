@@ -8,10 +8,10 @@ metadata:
 
 spec:
   rules:
-    - host: dev.api.goodfood.ovh
+    - host: localhost
       http:
         paths:
-          - path: /auth-api
+          - path: /auth
             pathType: Prefix
             backend:
               service:
