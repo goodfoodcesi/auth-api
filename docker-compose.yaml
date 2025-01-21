@@ -6,9 +6,9 @@ services:
     environment:
       - DB_HOST=postgres
       - DB_PORT=5432
-      - DB_USER=authapi
-      - DB_PASSWORD=authapi
-      - DB_NAME=authapi
+      - POSTGRES_USER=authapi
+      - POSTGRES_PASSWORD=authapi
+      - POSTGRES_DB=authapi
       - PASSWORD_SECRET=your-super-secret-salt
       - JWT_ACCESS_SECRET=your-super-secret-jwt-token
       - JWT_REFRESH_SECRET=your-super-secret-refresh-jwt-token
