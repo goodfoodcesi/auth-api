@@ -27,8 +27,8 @@ func NewRouter(
 	r.Use(customMiddleware.LoggerMiddleware(logger))
 	r.Use(middleware.Timeout(60 * time.Second))
 
-	rateLimiter := customMiddleware.NewRateLimiter(100, 100)
-	r.Use(rateLimiter.Middleware)
+	//rateLimiter := customMiddleware.NewRateLimiter(100, 100)
+	//r.Use(rateLimiter.Middleware)
 
 	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{"*"},

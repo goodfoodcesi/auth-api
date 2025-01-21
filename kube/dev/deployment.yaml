@@ -17,7 +17,6 @@ spec:
       labels:
         app: auth-api
     spec:
-
       imagePullSecrets:
         - name: scw-registry-secret
       containers:
