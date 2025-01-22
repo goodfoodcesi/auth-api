@@ -1,7 +1,48 @@
-version = 1
+version: 1
 
-[[analyzers]]
-name = "go"
+exclude_patterns:
+  - "infrastructure/database/sqlc/**"
+  - "tests/**"
+  - "**/mock/**"
+  - "**/*_test.go"
 
-  [analyzers.meta]
-  import_root = "github.com/goodfoodcesi/auth-api"
+test_patterns:
+  - "**/*_test.go"
+
+tools:
+  go:
+    enabled: true
+    dependency_files:
+      - go.mod
+    meta:
+      import_root: github.com/your-username/your-project
+
+analyzers:
+  - name: go
+    enabled: true
+    rules:
+      - id: go-cyclomatic-complexity
+        enabled: true
+        max_complexity: 15
+      - id: go-test-coverage
+        enabled: true
+        minimum_coverage: 80%
+
+  - name: test-coverage
+    enabled: true
+
+  - name: golangci-lint
+    enabled: true
+    config_file: .golangci.yml
+
+  - name: semgrep
+    enabled: true
+    rules:
+      - go
+
+  - name: secret-scanner
+    enabled: true
+
+transforms:
+  - name: go-mod-tidy
+    enabled: true
