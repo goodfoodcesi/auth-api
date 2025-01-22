@@ -6,10 +6,7 @@ import { uuidv4 } from 'https://jslib.k6.io/k6-utils/1.4.0/index.js';
 
 export const options = {
     stages: [
-        { duration: '1m', target: 10 },  // 10 utilisateurs pendant 1 minute
-        { duration: '1m', target: 50 }, // 50 utilisateurs pendant 5 minutes
-        { duration: '1m', target: 100 }, // 100 utilisateurs pendant 5 minutes
-        { duration: '1m', target: 1000 }, // 1000 utilisateurs pendant 5 minutes
+        { duration: '1m', target: 100 },  // 10 utilisateurs pendant 1 minute
     ],
 };
 
@@ -32,7 +29,7 @@ export default function () {
     };
 
     // Requête POST
-    const response = http.post('http://localhost:8000/auth/register', payload, { headers });
+    const response = http.post('http://dev.goodfood.ovh/auth/register', payload, { headers });
 
     // Vérifications
     check(response, {
