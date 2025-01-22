@@ -2,19 +2,7 @@
 
 version = 1
 
-[[analyzers]]
-name = "go"
-enabled = true
-
-  [analyzers.meta]
-  # Indiquez le chemin de la racine du code Go
-  source = "./"
-
-  # Active l'utilisation de Go Modules
-  use_go_mod = true
-
-  # Exclut les chemins inutiles pour l'analyse
-  exclude_patterns = [
+exclude_patterns = [
     "bin/**",
     "tests/**",
     "k6/**",
@@ -25,25 +13,17 @@ enabled = true
     "docker-compose*.yaml", # Fichiers docker-compose
     "*.js",  # Fichiers JavaScript
     "*.json",  # Fichiers JSON
-  ]
+]
+
+[[analyzers]]
+name = "go"
+enabled = true
+
+  [analyzers.meta]
+  # Indiquez le chemin de la racine du code Go
+  import_path = "github.com/goodfoodcesi/auth-api"
 
   [analyzers.configs]
   # Active ou désactive les règles spécifiques
   gosec = true   # Analyse de sécurité
   stylecheck = true  # Vérifications de style
-
-# Exclusions globales pour tous les analyseurs
-exclude_patterns = [
-  "bin/**",
-  "*.gen.go",
-  "**/migration/**"
-]
-
-# Ajout d'autres analyseurs si nécessaire
-[[analyzers]]
-name = "dockerfile"
-enabled = true
-
-[[analyzers]]
-name = "yaml"
-enabled = true
