@@ -17,7 +17,6 @@ WORKDIR /
 COPY --from=builder /authapi /authapi
 
 
-
 EXPOSE 8080
 
 ENTRYPOINT ["/authapi"]
