@@ -37,7 +37,7 @@ jobs:
   build-feature:
       if: startsWith(github.ref, 'refs/heads/feature/')
       environment: feature
-      needs: test
+      needs: [test, gosec]
       runs-on: ubuntu-latest
       steps:
         - name: Checkout repository
@@ -58,7 +58,7 @@ jobs:
   build-dev:
     if: github.ref == 'refs/heads/develop'
     environment: dev
-    needs: test
+    needs: [test, gosec]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -84,8 +84,7 @@ jobs:
   build-prod-api:
     if: startsWith(github.ref, 'refs/tags/')
     environment: prod
-    needs:
-      - test
+    needs: [test, gosec]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -115,8 +114,7 @@ jobs:
   build-prod-consumer:
     if: startsWith(github.ref, 'refs/tags/')
     environment: prod
-    needs:
-      - test
+    needs: [test, gosec]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
