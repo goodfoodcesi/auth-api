@@ -5,13 +5,14 @@ metadata:
   annotations:
     kubernetes.io/ingress.class: traefik # Utilisation de Traefik comme contrôleur d'ingress
     traefik.ingress.kubernetes.io/router.entrypoints: web
+    traefik.ingress.kubernetes.io/rewrite-target: /$2
 
 spec:
   rules:
     - host: dev.goodfood.ovh
       http:
         paths:
-          - path: /auth
+          - path: /auth(/|$)(.*)
             pathType: Prefix
             backend:
               service:
