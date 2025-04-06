@@ -1,9 +1,10 @@
 package router
 
 import (
-	"github.com/goodfoodcesi/auth-api/interfaces/http/response"
 	"net/http"
 	"time"
+
+	"github.com/goodfoodcesi/auth-api/interfaces/http/response"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -44,6 +45,10 @@ func NewRouter(
 	})
 	r.MethodNotAllowed(func(w http.ResponseWriter, r *http.Request) {
 		response.Error(w, http.StatusMethodNotAllowed, "Method not allowed", nil)
+	})
+
+	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
+		response.JSON(w, http.StatusOK, map[string]string{"status": "ok"})
 	})
 
 	r.Route("/auth", func(r chi.Router) {
