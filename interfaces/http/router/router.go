@@ -57,7 +57,7 @@ func NewRouter(
 			r.Post("/register", userHandler.Register)
 			r.Post("/login", userHandler.Login)
 			r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
-				response.JSON(w, http.StatusOK, map[string]string{"status": "ok"})
+				response.JSON(w, http.StatusOK, map[string]string{"status": "ok Romain"})
 			})
 		})
 
