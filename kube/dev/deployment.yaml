@@ -4,7 +4,7 @@ metadata:
   name: auth-api
 spec:
   revisionHistoryLimit: 3
-  replicas: 6
+  replicas: 3
   selector:
     matchLabels:
       app: auth-api
